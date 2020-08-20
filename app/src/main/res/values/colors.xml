@@ -5,4 +5,13 @@
     <color name="colorAccent">#03DAC5</color>
 
     <color name="colorTransparent50">#50000000</color>
+
+
+    <color name="colorBackground">#f9f9fa</color>
+    <color name="colorTextSubtitle">#4e4e4e</color>
+    <color name="colorTextTitle">#262626</color>
+    <color name="transparent_DD">#DDFFFFFF</color>
+
+    <color name="app_label_grey">#808080</color>
+    <color name="app_label_white">#FFF</color>
 </resources>

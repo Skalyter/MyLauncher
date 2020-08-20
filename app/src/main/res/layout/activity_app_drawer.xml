@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:scrollbarStyle="insideInset"
-    android:background="@color/colorTransparent50"
+    android:background="@color/transparent_DD"
     android:scrollbars="vertical"
     android:orientation="vertical"
     tools:context=".drawer.AppDrawerActivity">

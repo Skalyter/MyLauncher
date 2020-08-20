@@ -57,6 +57,11 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
         String appName = appList.get(position).getLabel().toString();
         Drawable appIcon = appList.get(position).getIcon();
 
+        if (showAllApps){
+            holder.appLabel.setTextColor(context.getResources().getColor(R.color.app_label_grey, null));
+        } else {
+            holder.appLabel.setTextColor(context.getResources().getColor(R.color.app_label_white, null));
+        }
         holder.appLabel.setText(appName);
         Glide.with(context).load(appIcon)
                 .apply(RequestOptions.fitCenterTransform()).into(holder.appIcon);

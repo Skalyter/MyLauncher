@@ -7,7 +7,7 @@ import android.content.pm.ResolveInfo;
 
 import java.util.List;
 
-public abstract class Util {
+public abstract class HomeScreenUtil {
     public static int getNumberOfPages(Context context){
         PackageManager pm = context.getPackageManager();
 
