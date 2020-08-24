@@ -14,4 +14,13 @@
 
     <color name="app_label_grey">#808080</color>
     <color name="app_label_white">#FFF</color>
+
+    <string name="vibrant_color_1">#ffeead</string>
+    <string name="vibrant_color_2">#93cfb3</string>
+    <string name="vibrant_color_8">#d93947</string>
+    <string name="vibrant_color_7">#ffbf27</string>
+    <string name="vibrant_color_6">#6aa9ae</string>
+    <string name="vibrant_color_5">#1ba798</string>
+    <string name="vibrant_color_4">#faca5f</string>
+    <string name="vibrant_color_3">#fd7a7a</string>
 </resources>

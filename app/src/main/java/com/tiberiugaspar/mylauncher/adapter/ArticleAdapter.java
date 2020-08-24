@@ -84,6 +84,13 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
         holder.time.setText(String.format(" • %s", NewsApiUtil.DateToTimeFormat(article.getPublishedAt())));
         holder.publishDate.setText(NewsApiUtil.DateFormat(article.getPublishedAt()));
         holder.author.setText(article.getAuthor());
+
+        holder.itemView.setOnClickListener(view -> {
+            String url = articleList.get(position).getUrl();
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -91,7 +98,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
         return articleList.size();
     }
 
-    public class ArticleViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ArticleViewHolder extends RecyclerView.ViewHolder {
 
         TextView title, description, author, publishDate, source, time;
         ImageView image;
@@ -107,16 +114,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
             time = itemView.findViewById(R.id.time);
             image = itemView.findViewById(R.id.img);
             progressBar = itemView.findViewById(R.id.progress_load_photo);
-
-        }
-
-        @Override
-        public void onClick(View v) {
-            int position = getAdapterPosition();
-            String url = articleList.get(position).getUrl();
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(url));
-            context.startActivity(intent);
         }
     }
 

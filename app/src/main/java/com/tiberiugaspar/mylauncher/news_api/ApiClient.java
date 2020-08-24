@@ -15,11 +15,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
 
-    public static final String BASE_URL ="https://newsapi.org/v2/";
+    public static final String BASE_URL = "https://newsapi.org/v2/";
     public static Retrofit retrofit;
 
-    public static Retrofit getApiClient(){
-        if (retrofit == null){
+    public static Retrofit getApiClient() {
+        if (retrofit == null) {
             retrofit = new Retrofit.Builder().baseUrl(BASE_URL)
                     .client(getUnsafeOkHttpClient().build())
                     .addConverterFactory(GsonConverterFactory.create())
@@ -28,7 +28,7 @@ public class ApiClient {
         return retrofit;
     }
 
-    public static OkHttpClient.Builder getUnsafeOkHttpClient(){
+    public static OkHttpClient.Builder getUnsafeOkHttpClient() {
         try {
             // Create a trust manager that does not validate certificate chains
             final TrustManager[] trustAllCerts = new TrustManager[]{

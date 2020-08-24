@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--view_pager_magic_number is used to get the number of fragments needed to be displayed in
+    MainPagerActivity besides the HomeScreenFragments (NewsFragment and SettingsFragment)-->
+    <integer name="view_pager_magic_number">2</integer>
+</resources>

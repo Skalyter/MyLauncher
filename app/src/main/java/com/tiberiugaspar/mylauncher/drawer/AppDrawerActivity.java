@@ -5,8 +5,8 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.tiberiugaspar.mylauncher.adapter.AppListAdapter;
 import com.tiberiugaspar.mylauncher.R;
+import com.tiberiugaspar.mylauncher.adapter.AppListAdapter;
 import com.tiberiugaspar.mylauncher.util.WrapContentGridLayoutManager;
 
 public class AppDrawerActivity extends AppCompatActivity {
@@ -21,7 +21,6 @@ public class AppDrawerActivity extends AppCompatActivity {
         RecyclerView appList = findViewById(R.id.app_list);
         appList.setLayoutManager(new WrapContentGridLayoutManager(this, 5));
         appList.setAdapter(adapter);
-
     }
 
     @Override

@@ -44,6 +44,7 @@ public class HomeScreenFragment extends Fragment {
         }
         recyclerView.setLayoutManager(new WrapContentGridLayoutManager(getActivity(), 5));
         recyclerView.setAdapter(appListAdapter);
+        recyclerView.setScrollContainer(false);
     }
 
 }

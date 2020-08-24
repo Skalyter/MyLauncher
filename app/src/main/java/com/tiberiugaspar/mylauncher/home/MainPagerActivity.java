@@ -9,6 +9,10 @@ import android.provider.MediaStore;
 import android.provider.Telephony;
 import android.telecom.TelecomManager;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -30,9 +34,44 @@ public class MainPagerActivity extends FragmentActivity {
     private ViewPager2 viewPager;
     private FragmentStateAdapter pagerAdapter;
     private ImageView appPhone, appMessages, appDrawer, appBrowser, appCamera;
-    private LinearLayout bottomApps;
+    private LinearLayout dockLayout;
 
     private String phonePackage, smsPackage, browserPackage, cameraPackage;
+
+    ViewPager2.OnPageChangeCallback pageChangeCallback = new ViewPager2.OnPageChangeCallback() {
+        @Override
+        public void onPageSelected(int position) {
+            super.onPageSelected(position);
+            Window window = getWindow();
+            if (position == 0
+                    || (position == (HomeScreenUtil.getNumberOfPages(getApplicationContext()) +
+                    getResources().getInteger(R.integer.view_pager_magic_number) - 1))) {
+
+                Animation animation = AnimationUtils.loadAnimation(MainPagerActivity.this, android.R.anim.fade_out);
+                dockLayout.setVisibility(View.GONE);
+                dockLayout.setAnimation(animation);
+
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+                window.setStatusBarColor(getResources().getColor(R.color.colorTransparent50, null));
+                window.setNavigationBarColor(getResources().getColor(android.R.color.transparent, null));
+            } else {
+                if (window.getNavigationBarColor()
+                        == getResources().getColor(android.R.color.transparent, null)) {
+
+                    Animation animation = AnimationUtils.loadAnimation(MainPagerActivity.this, android.R.anim.fade_in);
+                    dockLayout.startAnimation(animation);
+                    dockLayout.setVisibility(View.VISIBLE);
+
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+
+                    window.setStatusBarColor(getResources().getColor(android.R.color.transparent, null));
+                    window.setNavigationBarColor(
+                            getResources().getColor(R.color.colorTransparent50, null));
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,15 +79,29 @@ public class MainPagerActivity extends FragmentActivity {
         setContentView(R.layout.activity_main_pager);
 
         findViewsById();
-        setDrawables();
-        setListeners();
+        configureDockDrawables();
+        configureListeners();
+
         pagerAdapter = new ScreenSlidePagerAdapter(this);
         viewPager.setAdapter(pagerAdapter);
         viewPager.setCurrentItem(1, true);
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         TabLayoutMediator mediator = new TabLayoutMediator(tabLayout, viewPager,
-                (tab, position) -> {});
+                (tab, position) -> {
+                });
         mediator.attach();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        viewPager.registerOnPageChangeCallback(pageChangeCallback);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        viewPager.unregisterOnPageChangeCallback(pageChangeCallback);
     }
 
     private void findViewsById() {
@@ -58,10 +111,10 @@ public class MainPagerActivity extends FragmentActivity {
         appDrawer = findViewById(R.id.app_drawer);
         appBrowser = findViewById(R.id.app_browser);
         appCamera = findViewById(R.id.app_camera);
-        bottomApps = findViewById(R.id.layout_home_apps);
+        dockLayout = findViewById(R.id.layout_home_apps);
     }
 
-    private void setDrawables() {
+    private void configureDockDrawables() {
         //set phone app icon
         phonePackage = ((TelecomManager) getSystemService(TELECOM_SERVICE)).getDefaultDialerPackage();
         setDrawableIcon(appPhone, phonePackage);
@@ -71,9 +124,6 @@ public class MainPagerActivity extends FragmentActivity {
         setDrawableIcon(appMessages, smsPackage);
 
         //set browser app icon
-//        Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://example.com"));
-//        ResolveInfo resolveInfo = getPackageManager().resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY);
-//        browserPackage = resolveInfo.activityInfo.packageName;
         browserPackage = "com.android.chrome";
         setDrawableIcon(appBrowser, browserPackage);
 
@@ -84,7 +134,7 @@ public class MainPagerActivity extends FragmentActivity {
         setDrawableIcon(appCamera, cameraPackage);
     }
 
-    private void setListeners() {
+    private void configureListeners() {
         appDrawer.setOnClickListener(v -> animateStartActivity(new Intent(MainPagerActivity.this, AppDrawerActivity.class)));
         appPhone.setOnClickListener(v -> animateStartActivity(phonePackage));
 
@@ -116,8 +166,6 @@ public class MainPagerActivity extends FragmentActivity {
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
-        NewsFragment newsFragment = new NewsFragment();
-        HomeScreenFragment homeScreenFragment = new HomeScreenFragment();
 
         public ScreenSlidePagerAdapter(FragmentActivity fa) {
             super(fa);
@@ -128,23 +176,19 @@ public class MainPagerActivity extends FragmentActivity {
         public Fragment createFragment(int position) {
             if (position == 0) {
                 //Fragment news
-                setTheme(R.style.NoActionBarTranslucent);
-                bottomApps.setVisibility(View.GONE);
-                return newsFragment;
+                return new NewsFragment();
             } else if (position == getItemCount() - 1) {
                 //fragment settings
-                bottomApps.setVisibility(View.VISIBLE);
                 return new Fragment();
             } else {
-                setTheme(R.style.NoActionBar);
-                bottomApps.setVisibility(View.VISIBLE);
                 return new HomeScreenFragment(position);
             }
         }
 
         @Override
         public int getItemCount() {
-            return HomeScreenUtil.getNumberOfPages(getApplicationContext())+2;
+            return HomeScreenUtil.getNumberOfPages(getApplicationContext()) +
+                    getResources().getInteger(R.integer.view_pager_magic_number);
         }
     }
 }

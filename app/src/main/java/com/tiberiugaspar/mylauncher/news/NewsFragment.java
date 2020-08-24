@@ -29,9 +29,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class NewsFragment extends Fragment {
 
-    public static final String API_KEY = "450215834b3e476dad2a443d88ffeb2d";
     private static final String TAG = "NewsFragment";
 
     private ArticleAdapter adapter;
@@ -41,6 +41,13 @@ public class NewsFragment extends Fragment {
     public NewsFragment() {
         // Required empty public constructor
     }
+
+    //used to retrieve the API key
+    static {
+        System.loadLibrary("keys");
+    }
+
+    public native String getNativeNewsApiKey();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -65,10 +72,14 @@ public class NewsFragment extends Fragment {
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         Call<News> call;
         String country = NewsApiUtil.getCountry();
-        call = apiInterface.getNews(country, API_KEY);
+        String key = getNativeNewsApiKey();
+        call = apiInterface.getNews(country, key);
         call.enqueue(new Callback<News>() {
             @Override
             public void onResponse(@NonNull Call<News> call, @NonNull Response<News> response) {
+                if (refreshLayout.isRefreshing()) {
+                    refreshLayout.setRefreshing(false);
+                }
                 if (response.isSuccessful() && response.body().getArticles() != null) {
                     if (!articleList.isEmpty()) {
                         articleList.clear();
@@ -76,9 +87,7 @@ public class NewsFragment extends Fragment {
                     articleList = response.body().getArticles();
                     adapter.setArticleList(articleList);
                     adapter.notifyDataSetChanged();
-                    if (refreshLayout.isRefreshing()) {
-                        refreshLayout.setRefreshing(false);
-                    }
+
                 } else {
                     Toast.makeText(getContext(), "No result!", Toast.LENGTH_SHORT).show();
                 }
