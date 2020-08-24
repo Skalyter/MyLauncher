@@ -1,6 +1,9 @@
 package com.tiberiugaspar.mylauncher.home;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
@@ -8,6 +11,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Telephony;
 import android.telecom.TelecomManager;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -15,6 +19,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -37,6 +42,7 @@ public class MainPagerActivity extends FragmentActivity {
     private LinearLayout dockLayout;
 
     private String phonePackage, smsPackage, browserPackage, cameraPackage;
+
 
     ViewPager2.OnPageChangeCallback pageChangeCallback = new ViewPager2.OnPageChangeCallback() {
         @Override
@@ -72,6 +78,28 @@ public class MainPagerActivity extends FragmentActivity {
             }
         }
     };
+    private BroadcastReceiver packageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction() != null) {
+                String packageName = intent.getData().toString();
+                packageName = packageName.replace("package:", "");
+                Log.d("MainPagerActivity", "onReceive: " + packageName);
+                switch (intent.getAction()) {
+                    case Intent.ACTION_PACKAGE_ADDED:
+                        Toast.makeText(context, packageName + " installed", Toast.LENGTH_SHORT).show();
+                        break;
+                    case Intent.ACTION_PACKAGE_CHANGED:
+                        break;
+                    case Intent.ACTION_PACKAGE_REMOVED:
+                        Toast.makeText(context, packageName + " uninstalled", Toast.LENGTH_LONG).show();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,18 +118,21 @@ public class MainPagerActivity extends FragmentActivity {
                 (tab, position) -> {
                 });
         mediator.attach();
+
+        //Register packageReceiver to listen to all the packages added or removed
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        intentFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        intentFilter.addDataScheme("package");
+        registerReceiver(packageReceiver, intentFilter);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        viewPager.registerOnPageChangeCallback(pageChangeCallback);
-    }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        viewPager.unregisterOnPageChangeCallback(pageChangeCallback);
+        viewPager.registerOnPageChangeCallback(pageChangeCallback);
     }
 
     private void findViewsById() {
@@ -114,24 +145,11 @@ public class MainPagerActivity extends FragmentActivity {
         dockLayout = findViewById(R.id.layout_home_apps);
     }
 
-    private void configureDockDrawables() {
-        //set phone app icon
-        phonePackage = ((TelecomManager) getSystemService(TELECOM_SERVICE)).getDefaultDialerPackage();
-        setDrawableIcon(appPhone, phonePackage);
+    @Override
+    protected void onPause() {
+        super.onPause();
 
-        //set sms app icon
-        smsPackage = Telephony.Sms.getDefaultSmsPackage(this);
-        setDrawableIcon(appMessages, smsPackage);
-
-        //set browser app icon
-        browserPackage = "com.android.chrome";
-        setDrawableIcon(appBrowser, browserPackage);
-
-        //set camera app icon
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        ResolveInfo resolveInfo2 = getPackageManager().resolveActivity(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY);
-        cameraPackage = resolveInfo2.activityInfo.packageName;
-        setDrawableIcon(appCamera, cameraPackage);
+        viewPager.unregisterOnPageChangeCallback(pageChangeCallback);
     }
 
     private void configureListeners() {
@@ -163,6 +181,33 @@ public class MainPagerActivity extends FragmentActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        unregisterReceiver(packageReceiver);
+    }
+
+    private void configureDockDrawables() {
+        //set phone app icon
+        phonePackage = ((TelecomManager) getSystemService(TELECOM_SERVICE)).getDefaultDialerPackage();
+        setDrawableIcon(appPhone, phonePackage);
+
+        //set sms app icon
+        smsPackage = Telephony.Sms.getDefaultSmsPackage(this);
+        setDrawableIcon(appMessages, smsPackage);
+
+        //set browser app icon
+        browserPackage = "com.android.chrome";
+        setDrawableIcon(appBrowser, browserPackage);
+
+        //set camera app icon
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        ResolveInfo resolveInfo = getPackageManager().resolveActivity(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY);
+        cameraPackage = resolveInfo.activityInfo.packageName;
+        setDrawableIcon(appCamera, cameraPackage);
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {

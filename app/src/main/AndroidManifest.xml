@@ -15,7 +15,9 @@
         android:launchMode="singleTask"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true">
-        <activity android:name=".home.MainPagerActivity"
+
+        <activity
+            android:name=".home.MainPagerActivity"
             android:theme="@style/NoActionBar">
             <intent-filter>
                 <category android:name="android.intent.category.HOME" />
@@ -25,10 +27,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".drawer.AppDrawerActivity"
-            android:theme="@style/NoActionBarTranslucent">
 
-        </activity>
+        <activity
+            android:name=".drawer.AppDrawerActivity"
+            android:theme="@style/NoActionBarTranslucent" />
     </application>
 
 </manifest>
