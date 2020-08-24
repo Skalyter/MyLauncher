@@ -116,6 +116,9 @@ public class MainPagerActivity extends FragmentActivity {
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
+        NewsFragment newsFragment = new NewsFragment();
+        HomeScreenFragment homeScreenFragment = new HomeScreenFragment();
+
         public ScreenSlidePagerAdapter(FragmentActivity fa) {
             super(fa);
         }
@@ -123,16 +126,16 @@ public class MainPagerActivity extends FragmentActivity {
         @NonNull
         @Override
         public Fragment createFragment(int position) {
-            if (position == 0){
+            if (position == 0) {
                 //Fragment news
                 setTheme(R.style.NoActionBarTranslucent);
                 bottomApps.setVisibility(View.GONE);
-                return new NewsFragment();
-            } else if (position == getItemCount()-1){
+                return newsFragment;
+            } else if (position == getItemCount() - 1) {
                 //fragment settings
                 bottomApps.setVisibility(View.VISIBLE);
                 return new Fragment();
-            } else{
+            } else {
                 setTheme(R.style.NoActionBar);
                 bottomApps.setVisibility(View.VISIBLE);
                 return new HomeScreenFragment(position);

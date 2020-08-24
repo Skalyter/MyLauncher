@@ -10,8 +10,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.tiberiugaspar.mylauncher.adapter.AppListAdapter;
 import com.tiberiugaspar.mylauncher.R;
+import com.tiberiugaspar.mylauncher.adapter.AppListAdapter;
 import com.tiberiugaspar.mylauncher.util.WrapContentGridLayoutManager;
 
 public class HomeScreenFragment extends Fragment {
@@ -37,8 +37,13 @@ public class HomeScreenFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         RecyclerView recyclerView = view.findViewById(R.id.app_list);
-        appListAdapter = new AppListAdapter(getActivity(), false, position);
+        if (appListAdapter == null) {
+            appListAdapter = new AppListAdapter(getActivity(), false, position);
+        } else {
+            appListAdapter.setPosition(position);
+        }
         recyclerView.setLayoutManager(new WrapContentGridLayoutManager(getActivity(), 5));
         recyclerView.setAdapter(appListAdapter);
     }
+
 }

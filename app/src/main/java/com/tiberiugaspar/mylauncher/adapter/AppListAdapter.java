@@ -22,7 +22,6 @@ import com.tiberiugaspar.mylauncher.model.AppInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListViewHolder> {
@@ -35,9 +34,17 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
     public AppListAdapter(Context context, boolean showAllApps, Integer position) {
         this.context = context;
         this.showAllApps = showAllApps;
-        if (position != null) this.position = position-1;
+        if (position != null) this.position = position - 1;
         new AppListThread().execute();
         appsPerPage = 30; //TODO: save this value locally according to user preferences (SharedPref / local DB)
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+        if (!appList.isEmpty()) {
+            appList.clear();
+        }
+        new AppListThread().execute();
     }
 
     public void addApp(AppInfo appInfo) {
@@ -57,7 +64,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
         String appName = appList.get(position).getLabel().toString();
         Drawable appIcon = appList.get(position).getIcon();
 
-        if (showAllApps){
+        if (showAllApps) {
             holder.appLabel.setTextColor(context.getResources().getColor(R.color.app_label_grey, null));
         } else {
             holder.appLabel.setTextColor(context.getResources().getColor(R.color.app_label_white, null));
@@ -96,7 +103,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
     }
 
     private void updateAdapter() {
-        this.notifyItemInserted(this.getItemCount() - 1);
+        this.notifyDataSetChanged();
     }
 
     public class AppListThread extends AsyncTask<Void, Void, String> {
@@ -109,12 +116,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
 
             List<ResolveInfo> allApps = pm.queryIntentActivities(intent, 0);
-            Collections.sort(allApps, new Comparator<ResolveInfo>() {
-                @Override
-                public int compare(ResolveInfo o1, ResolveInfo o2) {
-                    return o1.loadLabel(pm).toString().compareToIgnoreCase(o2.loadLabel(pm).toString());
-                }
-            });
+            Collections.sort(allApps, (o1, o2) -> o1.loadLabel(pm).toString().compareToIgnoreCase(o2.loadLabel(pm).toString()));
             if (showAllApps) {
                 for (ResolveInfo info : allApps) {
                     AppInfo app = new AppInfo(

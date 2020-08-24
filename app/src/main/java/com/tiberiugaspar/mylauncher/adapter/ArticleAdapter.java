@@ -39,6 +39,10 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
         this.context = context;
     }
 
+    public void setArticleList(List<Article> articleList) {
+        this.articleList = articleList;
+    }
+
     @NonNull
     @Override
     public ArticleViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -77,7 +81,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
         holder.title.setText(article.getTitle());
         holder.description.setText(article.getDescription());
         holder.source.setText(article.getSource().getName());
-        holder.time.setText(" \u2022 " + NewsApiUtil.DateToTimeFormat(article.getPublishedAt()));
+        holder.time.setText(String.format(" • %s", NewsApiUtil.DateToTimeFormat(article.getPublishedAt())));
         holder.publishDate.setText(NewsApiUtil.DateFormat(article.getPublishedAt()));
         holder.author.setText(article.getAuthor());
     }

@@ -1,6 +1,7 @@
 package com.tiberiugaspar.mylauncher.news;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,9 +31,9 @@ import retrofit2.Response;
 
 public class NewsFragment extends Fragment {
 
-    public static final String API_KEY="450215834b3e476dad2a443d88ffeb2d";
+    public static final String API_KEY = "450215834b3e476dad2a443d88ffeb2d";
+    private static final String TAG = "NewsFragment";
 
-    private RecyclerView recyclerView;
     private ArticleAdapter adapter;
     private SwipeRefreshLayout refreshLayout;
     private List<Article> articleList = new ArrayList<>();
@@ -52,13 +53,15 @@ public class NewsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         refreshLayout = view.findViewById(R.id.news_feed_layout);
-        recyclerView = view.findViewById(R.id.recycler_news);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_news);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        loadJson();
-        refreshLayout.setOnRefreshListener(() -> loadJson());
+        adapter = new ArticleAdapter(articleList, getContext());
+        recyclerView.setAdapter(adapter);
+        downloadNews();
+        refreshLayout.setOnRefreshListener(() -> downloadNews());
     }
 
-    public void loadJson(){
+    private void downloadNews() {
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         Call<News> call;
         String country = NewsApiUtil.getCountry();
@@ -66,15 +69,14 @@ public class NewsFragment extends Fragment {
         call.enqueue(new Callback<News>() {
             @Override
             public void onResponse(@NonNull Call<News> call, @NonNull Response<News> response) {
-                if (response.isSuccessful() && response.body().getArticles() != null){
-                    if (!articleList.isEmpty()){
+                if (response.isSuccessful() && response.body().getArticles() != null) {
+                    if (!articleList.isEmpty()) {
                         articleList.clear();
                     }
                     articleList = response.body().getArticles();
-                    adapter = new ArticleAdapter(articleList, getContext());
-                    recyclerView.setAdapter(adapter);
+                    adapter.setArticleList(articleList);
                     adapter.notifyDataSetChanged();
-                    if (refreshLayout.isRefreshing()){
+                    if (refreshLayout.isRefreshing()) {
                         refreshLayout.setRefreshing(false);
                     }
                 } else {
@@ -83,11 +85,12 @@ public class NewsFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<News> call, Throwable t) {
-
+            public void onFailure(@NonNull Call<News> call, @NonNull Throwable t) {
+                Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "onFailure: " + t.getMessage());
             }
         });
-        
+
     }
 
 }
