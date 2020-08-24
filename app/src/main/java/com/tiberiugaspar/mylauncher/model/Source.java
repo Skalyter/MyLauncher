@@ -4,6 +4,12 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class Source {
+    public Source() {
+    }
+
+    public Source(String name) {
+        this.name = name;
+    }
 
     @SerializedName("id")
     @Expose
