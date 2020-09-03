@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_app_info"
+        android:icon="@drawable/ic_info"
+        android:title="@string/application_info" />
+
+    <item
+        android:id="@+id/menu_change_position"
+        android:icon="@drawable/ic_swap"
+        android:title="@string/move" />
+
+    <item
+        android:id="@+id/menu_remove"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/remove" />
+</menu>

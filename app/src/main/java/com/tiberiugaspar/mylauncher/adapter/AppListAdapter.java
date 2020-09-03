@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Vibrator;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +32,8 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
     private boolean showAllApps;
     private Integer position;
     private int appsPerPage;
+    private Vibrator vibrator;
+    private AppInfo appInfo;
 
     public AppListAdapter(Context context, boolean showAllApps, Integer position) {
         this.context = context;
@@ -37,6 +41,8 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
         if (position != null) this.position = position - 1;
         new AppListThread().execute();
         appsPerPage = 30; //TODO: save this value locally according to user preferences (SharedPref / local DB)
+        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+
     }
 
     public void setPosition(int position) {
@@ -45,6 +51,17 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
             appList.clear();
         }
         new AppListThread().execute();
+    }
+
+    public AppInfo getCurrentApp() {
+        return appInfo;
+    }
+
+    public void removeApp(AppInfo appInfo) {
+        int position = appList.indexOf(appInfo);
+        appList.remove(appInfo);
+        notifyItemRemoved(position);
+        notifyItemRangeRemoved(position, appList.size());
     }
 
     public void addApp(AppInfo appInfo) {
@@ -79,7 +96,12 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
         return appList.size();
     }
 
-    class AppListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    private void updateAdapter() {
+        this.notifyItemInserted(appList.size() - 1);
+    }
+
+    class AppListViewHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener, View.OnLongClickListener {
         public TextView appLabel;
         public ImageView appIcon;
 
@@ -89,21 +111,34 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
             appLabel = itemView.findViewById(R.id.app_name);
             appIcon = itemView.findViewById(R.id.app_icon);
             itemView.setOnClickListener(this);
+            itemView.setLongClickable(true);
+            itemView.setOnLongClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
             int position = getAdapterPosition();
             Context context = v.getContext();
+
             Intent intent = context.getPackageManager()
                     .getLaunchIntentForPackage(
                             appList.get(position).getPackageName().toString());
             context.startActivity(intent);
+            //TODO: increment package accessed number in DB
         }
-    }
 
-    private void updateAdapter() {
-        this.notifyDataSetChanged();
+        @Override
+        public boolean onLongClick(View v) {
+            Log.d("AppListAdapter", "onLongClick:  app pressed");
+
+            vibrator.vibrate(context.getResources().getInteger(R.integer.vibrate_duration));
+
+            v.showContextMenu();
+
+            appInfo = appList.get(getAdapterPosition());
+            return true;
+        }
+
     }
 
     public class AppListThread extends AsyncTask<Void, Void, String> {
@@ -126,6 +161,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
                     addApp(app);
                 }
             } else {
+                //TODO: get apps from db with their position
                 int start = position * appsPerPage;
                 int end = position * appsPerPage + appsPerPage;
                 for (int i = start; i < end && i < allApps.size(); i++) {

@@ -3,4 +3,5 @@
     <!--view_pager_magic_number is used to get the number of fragments needed to be displayed in
     MainPagerActivity besides the HomeScreenFragments (NewsFragment and SettingsFragment)-->
     <integer name="view_pager_magic_number">2</integer>
+    <integer name="vibrate_duration">50</integer>
 </resources>

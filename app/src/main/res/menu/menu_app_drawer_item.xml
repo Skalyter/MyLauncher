@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_app_info"
+        android:icon="@drawable/ic_info"
+        android:title="@string/application_info" />
+
+    <item
+        android:id="@+id/menu_add_to_homescreen"
+        android:icon="@drawable/ic_add_to_homescreen"
+        android:title="@string/add_to_home_screen" />
+</menu>

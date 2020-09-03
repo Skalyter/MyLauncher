@@ -3,4 +3,9 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="dot">•</string>
     <string name="posted_at">posted at</string>
+    <string name="application_info">Application info</string>
+    <string name="move">Move</string>
+    <string name="remove">Remove</string>
+    <string name="add_to_home_screen">Add to home screen</string>
+    <string name="uninstall">Uninstall</string>
 </resources>
