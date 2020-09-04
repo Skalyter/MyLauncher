@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.ContentLoadingProgressBar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,6 +39,8 @@ public class NewsFragment extends Fragment {
     private SwipeRefreshLayout refreshLayout;
     private List<Article> articleList = new ArrayList<>();
 
+    private ContentLoadingProgressBar progressBar;
+
     public NewsFragment() {
         // Required empty public constructor
     }
@@ -61,6 +64,9 @@ public class NewsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         refreshLayout = view.findViewById(R.id.news_feed_layout);
+        progressBar = view.findViewById(R.id.progress_circular);
+        progressBar.setVisibility(View.VISIBLE);
+        progressBar.show();
 
         RecyclerView recyclerView = view.findViewById(R.id.recycler_news);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -106,6 +112,11 @@ public class NewsFragment extends Fragment {
                     articleList = response.body().getArticles();
                     adapter.setArticleList(articleList);
                     adapter.notifyDataSetChanged();
+
+                    if (progressBar.isShown()) {
+                        progressBar.hide();
+                        progressBar.setVisibility(View.GONE);
+                    }
 
                 } else {
 
