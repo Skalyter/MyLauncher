@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Random;
 
 public class NewsApiUtil {
+
     public static ColorDrawable[] vibrantLightColorList =
             {
                     new ColorDrawable(R.string.vibrant_color_1),

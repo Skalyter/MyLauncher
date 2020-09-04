@@ -35,6 +35,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
     private Context context;
 
     public ArticleAdapter(List<Article> articleList, Context context) {
+
         this.articleList = articleList;
         this.context = context;
     }
@@ -46,13 +47,16 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
     @NonNull
     @Override
     public ArticleViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+
         LayoutInflater inflater = LayoutInflater.from(context);
         View itemView = inflater.inflate(R.layout.item_article, parent, false);
+
         return new ArticleViewHolder(itemView);
     }
 
     @Override
     public void onBindViewHolder(@NonNull final ArticleViewHolder holder, int position) {
+
         Article article = articleList.get(position);
 
         RequestOptions requestOptions = new RequestOptions();
@@ -60,6 +64,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
         requestOptions.error(NewsApiUtil.getRandomDrawbleColor());
         requestOptions.diskCacheStrategy(DiskCacheStrategy.ALL);
         requestOptions.centerCrop();
+
         Glide.with(context)
                 .load(article.getUrlToImage())
                 .apply(requestOptions)
@@ -86,9 +91,13 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
         holder.author.setText(article.getAuthor());
 
         holder.itemView.setOnClickListener(view -> {
+
+            //when an article is clicked, open the web browser with the article's link
             String url = articleList.get(position).getUrl();
             Intent intent = new Intent(Intent.ACTION_VIEW);
+
             intent.setData(Uri.parse(url));
+
             context.startActivity(intent);
         });
     }
@@ -106,6 +115,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
 
         public ArticleViewHolder(@NonNull View itemView) {
             super(itemView);
+
             title = itemView.findViewById(R.id.title);
             description = itemView.findViewById(R.id.description);
             author = itemView.findViewById(R.id.author);

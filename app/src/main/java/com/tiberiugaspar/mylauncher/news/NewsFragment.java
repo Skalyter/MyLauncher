@@ -42,7 +42,7 @@ public class NewsFragment extends Fragment {
         // Required empty public constructor
     }
 
-    //used to retrieve the API key
+    //used to retrieve the API key from NDK
     static {
         System.loadLibrary("keys");
     }
@@ -59,47 +59,67 @@ public class NewsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         refreshLayout = view.findViewById(R.id.news_feed_layout);
+
         RecyclerView recyclerView = view.findViewById(R.id.recycler_news);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
         adapter = new ArticleAdapter(articleList, getContext());
         recyclerView.setAdapter(adapter);
+
         downloadNews();
+
         refreshLayout.setOnRefreshListener(() -> downloadNews());
     }
 
+    /**
+     * This method is used to download the articles for the news feed, using {@link Call<News>}
+     */
     private void downloadNews() {
+
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         Call<News> call;
+
         String country = NewsApiUtil.getCountry();
         String key = getNativeNewsApiKey();
+
         call = apiInterface.getNews(country, key);
+
         call.enqueue(new Callback<News>() {
             @Override
             public void onResponse(@NonNull Call<News> call, @NonNull Response<News> response) {
+
                 if (refreshLayout.isRefreshing()) {
+
                     refreshLayout.setRefreshing(false);
                 }
+
                 if (response.isSuccessful() && response.body().getArticles() != null) {
+
+                    //Clear the article list if there are any new articles to be retrieved
                     if (!articleList.isEmpty()) {
+
                         articleList.clear();
                     }
+
                     articleList = response.body().getArticles();
                     adapter.setArticleList(articleList);
                     adapter.notifyDataSetChanged();
 
                 } else {
+
                     Toast.makeText(getContext(), "No result!", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<News> call, @NonNull Throwable t) {
+
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+
                 Log.e(TAG, "onFailure: " + t.getMessage());
             }
         });
-
     }
-
 }

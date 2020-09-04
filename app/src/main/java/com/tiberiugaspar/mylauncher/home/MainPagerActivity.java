@@ -55,11 +55,26 @@ public class MainPagerActivity extends FragmentActivity {
     private AppListAdapter appListAdapter;
 
     private Window window;
+
+    /*
+     * pageChangeCallback is used to interact with the user's swiping gestures, to show or hide
+     * different views, according to the current page (the news fragment, home screen pages or
+     * settings fragment)
+     */
     ViewPager2.OnPageChangeCallback pageChangeCallback = new ViewPager2.OnPageChangeCallback() {
+
         @Override
         public void onPageSelected(int position) {
             super.onPageSelected(position);
 
+            //if position (number of current page) is 0, that means the user is on the News Fragment,
+            // therefore we need to hide the bottom appDock layout and to set the StatusBar and NavigationBar
+            // to be translucent, using the method addTranslucentWindowFlags()
+            //
+            //if position is getNumberOfPages(getApplicationContext()) + magic_number - 1,
+            //that means the user is on the Settings fragment and we'll proceed exactly the same as
+            // in the News Fragment case
+            //TODO: change this, because won't be needed after we show only the user selected apps
             if (position == 0
                     || (position == (HomeScreenUtil.getNumberOfPages(getApplicationContext()) +
                     getResources().getInteger(R.integer.view_pager_magic_number) - 1))) {
@@ -71,6 +86,12 @@ public class MainPagerActivity extends FragmentActivity {
                 addTranslucentWindowFlags();
 
             } else {
+
+                //if current position is not the first or the last page,
+                // we check whether the navigationBarColor is transparent or not.
+                //If so, it means the user swiped from position 0 or last, which means we need to clear
+                //the translucent flags we added for the NavigationBar and StatusBar and to show the bottom
+                //AppDock layout
                 if (window.getNavigationBarColor()
                         == getResources().getColor(android.R.color.transparent, null)) {
 
@@ -83,23 +104,34 @@ public class MainPagerActivity extends FragmentActivity {
             }
         }
     };
+
     private BroadcastReceiver packageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            //Triggered when a package is added, changed or removed
             if (intent.getAction() != null) {
+
                 String packageName = intent.getData().toString();
                 packageName = packageName.replace("package:", "");
+
                 Log.d("MainPagerActivity", "onReceive: " + packageName);
+
                 //TODO: replace with add/remove app from homescreen and DB
                 switch (intent.getAction()) {
                     case Intent.ACTION_PACKAGE_ADDED:
+
                         Toast.makeText(context, packageName + " installed", Toast.LENGTH_SHORT).show();
                         break;
+
                     case Intent.ACTION_PACKAGE_CHANGED:
+
                         break;
+
                     case Intent.ACTION_PACKAGE_REMOVED:
+
                         Toast.makeText(context, packageName + " uninstalled", Toast.LENGTH_LONG).show();
                         break;
+
                     default:
                         break;
                 }
@@ -108,23 +140,16 @@ public class MainPagerActivity extends FragmentActivity {
     };
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        viewPager.registerOnPageChangeCallback(pageChangeCallback);
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main_pager);
 
         window = getWindow();
 
-
         findViewsById();
         configureDockDrawables();
-        configureListeners();
+        configureDockItemsListeners();
 
         appListAdapter = new AppListAdapter(this, true, null);
         appDrawerRecycler.setLayoutManager(new WrapContentGridLayoutManager(this, 5));
@@ -142,39 +167,59 @@ public class MainPagerActivity extends FragmentActivity {
                 });
         mediator.attach();
 
+        //Register packageReceiver to listen to all the packages added or removed
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
         intentFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
         intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
         intentFilter.addDataScheme("package");
 
-        //Register packageReceiver to listen to all the packages added or removed
         registerReceiver(packageReceiver, intentFilter);
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onResume() {
+        super.onResume();
 
-        unregisterReceiver(packageReceiver);
+        //register the viewPager's onPageChangeCallback so it can listen to page changes
+        viewPager.registerOnPageChangeCallback(pageChangeCallback);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
+        //unregister viewPager's onPageChangeCallback
         viewPager.unregisterOnPageChangeCallback(pageChangeCallback);
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        //As opposite to registerReceiver on the onCreate method, we need to unregister the receiver
+        //in the onDestroy method
+        unregisterReceiver(packageReceiver);
+    }
+
+
+    @Override
     public void onBackPressed() {
+
+        //if the back button is pressed while the user is in AppDrawer layout, we'll hide the drawer
         if (appDrawerLayout.getVisibility() == View.VISIBLE) {
             hideAppDrawer();
 
         } else if (viewPager.getCurrentItem() == 0) {
+
+            //if the back button is pressed while the user is in the NewsFragment, we'll send him back
+            //to the first app page
             viewPager.setCurrentItem(1, true);
+            //TODO: add SettingsFragment condition
 
         } else {
+
+            //if none of the above, back button works as expected
             super.onBackPressed();
         }
     }
@@ -188,9 +233,15 @@ public class MainPagerActivity extends FragmentActivity {
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
-        AppInfo appInfo = appListAdapter.getCurrentApp();
+
+        //get the current app info from adapter
+        AppInfo appInfo = appListAdapter.getSelectedApp();
+
         switch (item.getItemId()) {
             case R.id.menu_app_info:
+
+                //start settings activity with application details
+
                 Intent i = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                 i.addCategory(Intent.CATEGORY_DEFAULT);
                 i.setData(Uri.parse("package:" + appInfo.getPackageName()));
@@ -200,8 +251,9 @@ public class MainPagerActivity extends FragmentActivity {
                 return true;
 
             case R.id.menu_add_to_homescreen:
-                //TODO: add app in db/update
-                Toast.makeText(this, "Add to homescreen", Toast.LENGTH_SHORT).show();
+                //TODO: insert/update app in DB
+                //TODO: implement some drag-and-drop like feature to add current app on home screen
+                Toast.makeText(this, "Add to home screen", Toast.LENGTH_SHORT).show();
 
                 return true;
 
@@ -210,11 +262,26 @@ public class MainPagerActivity extends FragmentActivity {
         }
     }
 
+    /**
+     * This method is used to start an activity for a given intent,
+     * using the slide up animation for the starting activity
+     * and fade out animation for this activity
+     *
+     * @param intent is the intent of the package that contains the activity that should be initiated;
+     */
     private void animateStartActivity(Intent intent) {
         startActivity(intent);
         overridePendingTransition(R.anim.slide_up, android.R.anim.fade_out);
     }
 
+    /**
+     * This method is used to start an activity for a given package name.
+     * It initialises an intent using the packageManager's getLaunchIntentForPackage() method
+     * then calls the {@link #animateStartActivity(Intent)} method, declared above
+     *
+     * @param packageName is the name of the package that should be initiated;
+     * @see #animateStartActivity(Intent)
+     */
     private void animateStartActivity(String packageName) {
         Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
         animateStartActivity(intent);
@@ -234,7 +301,7 @@ public class MainPagerActivity extends FragmentActivity {
         appDrawerRecycler = findViewById(R.id.app_list);
     }
 
-    private void configureListeners() {
+    private void configureDockItemsListeners() {
         appDrawer.setOnClickListener(v -> showAppDrawer());
         appPhone.setOnClickListener(v -> animateStartActivity(phonePackage));
 
@@ -245,6 +312,14 @@ public class MainPagerActivity extends FragmentActivity {
         appCamera.setOnClickListener(v -> animateStartActivity(cameraPackage));
     }
 
+    /**
+     * Shows the AppDrawer layout and hides the HomeScreen layout, using proper animations
+     * then adds the translucent window flags by calling {@link #addTranslucentWindowFlags()}
+     * Opposite of {@link #hideAppDrawer()}
+     *
+     * @see #addTranslucentWindowFlags();
+     * @see #hideAppDrawer()
+     */
     private void showAppDrawer() {
         Animation slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
 
@@ -256,6 +331,15 @@ public class MainPagerActivity extends FragmentActivity {
         });
     }
 
+    /**
+     * The opposite of {@link #showAppDrawer()}.
+     * This method hides the AppDrawer layout and shows the HomeScreen layout, using a slide down
+     * animation and clears the translucent window flags, using the {@link #clearTranslucentWindowFlags()}
+     * method.
+     *
+     * @see #showAppDrawer();
+     * @see #clearTranslucentWindowFlags();
+     */
     private void hideAppDrawer() {
         Animation slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down);
         appDrawerLayout.startAnimation(slideDown);
@@ -266,44 +350,79 @@ public class MainPagerActivity extends FragmentActivity {
         });
     }
 
+    /**
+     * Set the app icon image resource, using a {@link Drawable} object and the {@link PackageManager}
+     * to get the app icon.
+     *
+     * @param view        - the imageView object that needs to display the app icon;
+     * @param packageName - the package name of the app, used to get the app icon;
+     */
     private void setDrawableIcon(ImageView view, String packageName) {
+
         PackageManager pm = MainPagerActivity.this.getPackageManager();
+
         try {
+
             Drawable icon = pm.getApplicationIcon(packageName);
             view.setImageDrawable(icon);
+
         } catch (PackageManager.NameNotFoundException e) {
+
             e.printStackTrace();
         }
     }
 
+    /**
+     * This method is used to get the package names and icons of the apps inside the bottom dock view -
+     * Phone, Messages, Browser and Camera and uses the {@link #setDrawableIcon(ImageView, String)}
+     * method to show the app icons properly
+     *
+     * @see #setDrawableIcon(ImageView, String)
+     */
     private void configureDockDrawables() {
-        //set phone app icon
+        //Get the default phone app package and set its icon
         phonePackage = ((TelecomManager) getSystemService(TELECOM_SERVICE)).getDefaultDialerPackage();
         setDrawableIcon(appPhone, phonePackage);
 
-        //set sms app icon
+        //Get the default SMS app package and set its icon
         smsPackage = Telephony.Sms.getDefaultSmsPackage(this);
         setDrawableIcon(appMessages, smsPackage);
 
-        //set browser app icon
+        //Get the default Browser app (Chrome) package and set its icon
         browserPackage = "com.android.chrome";
         setDrawableIcon(appBrowser, browserPackage);
 
-        //set camera app icon
+        //Get the default Camera app package and set its icon
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         ResolveInfo resolveInfo = getPackageManager().resolveActivity(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY);
         cameraPackage = resolveInfo.activityInfo.packageName;
         setDrawableIcon(appCamera, cameraPackage);
     }
 
+    /**
+     * This method is used to add translucent window flags in order to achieve a fullscreen-like activity,
+     * by setting the StatusBar color transparent and by making the NavigationBar translucent
+     * <p>
+     * The opposite of {@link #clearTranslucentWindowFlags()}
+     *
+     * @see #clearTranslucentWindowFlags()
+     */
     private void addTranslucentWindowFlags() {
+
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         window.setStatusBarColor(getResources().getColor(R.color.colorTransparent50, null));
         window.setNavigationBarColor(getResources().getColor(android.R.color.transparent, null));
     }
 
+    /**
+     * The opposite method of {@link #addTranslucentWindowFlags()}
+     * This method clears all the flags added in the above mentioned method
+     *
+     * @see #addTranslucentWindowFlags()
+     */
     private void clearTranslucentWindowFlags() {
+
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         window.setStatusBarColor(getResources().getColor(android.R.color.transparent, null));
         window.setNavigationBarColor(
@@ -319,19 +438,24 @@ public class MainPagerActivity extends FragmentActivity {
         @NonNull
         @Override
         public Fragment createFragment(int position) {
+
             if (position == 0) {
-                //Fragment news
+
+                //Fragment News
                 return new NewsFragment();
             } else if (position == getItemCount() - 1) {
-                //fragment settings
+
+                //fragment Settings
                 return new Fragment();
             } else {
+                //Fragment HomeScreen
                 return new HomeScreenFragment(position);
             }
         }
 
         @Override
         public int getItemCount() {
+
             return HomeScreenUtil.getNumberOfPages(getApplicationContext()) +
                     getResources().getInteger(R.integer.view_pager_magic_number);
         }

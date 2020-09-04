@@ -19,16 +19,20 @@ public class ApiClient {
     public static Retrofit retrofit;
 
     public static Retrofit getApiClient() {
+
         if (retrofit == null) {
+
             retrofit = new Retrofit.Builder().baseUrl(BASE_URL)
                     .client(getUnsafeOkHttpClient().build())
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
+
         return retrofit;
     }
 
     public static OkHttpClient.Builder getUnsafeOkHttpClient() {
+
         try {
             // Create a trust manager that does not validate certificate chains
             final TrustManager[] trustAllCerts = new TrustManager[]{
@@ -50,6 +54,7 @@ public class ApiClient {
 
             // Install the all-trusting trust manager
             final SSLContext sslContext = SSLContext.getInstance("SSL");
+
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
 
             // Create an ssl socket factory with our all-trusting manager
@@ -63,8 +68,11 @@ public class ApiClient {
                     return true;
                 }
             });
+
             return builder;
+
         } catch (Exception e) {
+
             throw new RuntimeException(e);
         }
     }
