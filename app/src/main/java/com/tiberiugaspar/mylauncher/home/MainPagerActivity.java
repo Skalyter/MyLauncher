@@ -126,12 +126,13 @@ public class MainPagerActivity extends FragmentActivity {
                 AppInfo appInfo = null;
 
                 try {
+
                     appInfo = AppInfoUtil.getAppInfoFromPackageName(MainPagerActivity.this, packageName);
 
                 } catch (PackageManager.NameNotFoundException e) {
+
                     e.printStackTrace();
 
-                    Toast.makeText(context, "Package not found", Toast.LENGTH_SHORT).show();
                 }
 
                 if (appInfo != null) {
