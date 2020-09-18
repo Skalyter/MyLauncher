@@ -39,8 +39,12 @@ import com.tiberiugaspar.mylauncher.adapter.AppListAdapter;
 import com.tiberiugaspar.mylauncher.database.AppDao;
 import com.tiberiugaspar.mylauncher.model.AppInfo;
 import com.tiberiugaspar.mylauncher.news.NewsFragment;
+import com.tiberiugaspar.mylauncher.settings.SettingsFragment;
 import com.tiberiugaspar.mylauncher.util.AppInfoUtil;
+import com.tiberiugaspar.mylauncher.util.SettingsUtil;
 import com.tiberiugaspar.mylauncher.util.WrapContentGridLayoutManager;
+
+import static com.tiberiugaspar.mylauncher.util.SettingsUtil.SHARED_PREFERENCES_APP_GRID_LAYOUT_COLUMNS;
 
 public class MainPagerActivity extends FragmentActivity {
 
@@ -168,8 +172,10 @@ public class MainPagerActivity extends FragmentActivity {
         configureDockDrawables();
         configureDockItemsListeners();
 
+        int columns = SettingsUtil.getAppGridSize(this, SHARED_PREFERENCES_APP_GRID_LAYOUT_COLUMNS);
+
         appListAdapter = new AppListAdapter(this, true, null);
-        appDrawerRecycler.setLayoutManager(new WrapContentGridLayoutManager(this, 5));
+        appDrawerRecycler.setLayoutManager(new WrapContentGridLayoutManager(this, columns));
         appDrawerRecycler.setAdapter(appListAdapter);
         appDrawerLayout.setClickable(false);
 
@@ -490,8 +496,7 @@ public class MainPagerActivity extends FragmentActivity {
             } else if (position == getItemCount() - 1) {
 
                 //fragment Settings
-                //TODO create a Settings fragment
-                return new Fragment();
+                return new SettingsFragment();
             } else {
                 //Fragment HomeScreen
                 return new HomeScreenFragment(position);

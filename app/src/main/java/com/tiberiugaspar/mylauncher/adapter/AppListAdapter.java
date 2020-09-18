@@ -38,8 +38,6 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
 
     private AppDao appDao;
 
-    private int appsPerPage;
-
     private Vibrator vibrator;
 
 
@@ -54,7 +52,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
         }
 
         new GetAppListThread().execute();
-        appsPerPage = 30; //TODO: save this value locally according to user preferences (SharedPref / local DB)
+
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 
     }
@@ -167,7 +165,6 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
                     .getLaunchIntentForPackage(
                             appInfo.getPackageName().toString());
             context.startActivity(intent);
-
 
         }
 

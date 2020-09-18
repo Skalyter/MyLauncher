@@ -8,4 +8,16 @@
     <string name="remove">Remove</string>
     <string name="add_to_home_screen">Add to home screen</string>
     <string name="uninstall">Uninstall</string>
+    <string name="app_grid_layout">App grid layout</string>
+    <string name="launcher_style">Launcher style</string>
+    <string name="apps_order">Apps order</string>
+    <string name="shared_pref_two_layers">Two layers (with App Drawer)</string>
+    <string name="shared_pref_one_layer">One layer</string>
+    <string name="shared_pref_alphabetically">Alphabetically</string>
+    <string name="shared_pref_by_frequency">By frequency</string>
+    <string name="settings">Launcher settings</string>
+    <string name="grid4x4">4x4</string>
+    <string name="grid5x4">5x4</string>
+    <string name="grid5x5">5x5</string>
+    <string name="grid6x5">6x5</string>
 </resources>

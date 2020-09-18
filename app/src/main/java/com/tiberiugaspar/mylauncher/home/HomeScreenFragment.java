@@ -19,9 +19,12 @@ import com.tiberiugaspar.mylauncher.R;
 import com.tiberiugaspar.mylauncher.adapter.AppListAdapter;
 import com.tiberiugaspar.mylauncher.database.AppDao;
 import com.tiberiugaspar.mylauncher.model.AppInfo;
+import com.tiberiugaspar.mylauncher.util.SettingsUtil;
 import com.tiberiugaspar.mylauncher.util.WrapContentGridLayoutManager;
 
 import java.util.Collections;
+
+import static com.tiberiugaspar.mylauncher.util.SettingsUtil.SHARED_PREFERENCES_APP_GRID_LAYOUT_COLUMNS;
 
 public class HomeScreenFragment extends Fragment {
 
@@ -95,7 +98,8 @@ public class HomeScreenFragment extends Fragment {
             appListAdapter.setPageNumber(pageNumber);
         }
 
-        recyclerView.setLayoutManager(new WrapContentGridLayoutManager(getActivity(), 5));
+        int columns = SettingsUtil.getAppGridSize(getContext(), SHARED_PREFERENCES_APP_GRID_LAYOUT_COLUMNS);
+        recyclerView.setLayoutManager(new WrapContentGridLayoutManager(getActivity(), columns));
         recyclerView.setAdapter(appListAdapter);
         itemTouchHelper = new ItemTouchHelper(_ithCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_item_alphabetically"
+        android:title="@string/shared_pref_alphabetically" />
+    <item
+        android:id="@+id/menu_item_by_frequency"
+        android:title="@string/shared_pref_by_frequency" />
+</menu>
