@@ -10,7 +10,7 @@
     <string name="uninstall">Uninstall</string>
     <string name="app_grid_layout">App grid layout</string>
     <string name="launcher_style">Launcher style</string>
-    <string name="apps_order">Apps order</string>
+    <string name="apps_order">Order apps</string>
     <string name="shared_pref_two_layers">Two layers (with App Drawer)</string>
     <string name="shared_pref_one_layer">One layer</string>
     <string name="shared_pref_alphabetically">Alphabetically</string>

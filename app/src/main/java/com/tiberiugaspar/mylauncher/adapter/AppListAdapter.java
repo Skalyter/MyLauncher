@@ -7,7 +7,6 @@ import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Vibrator;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -132,7 +131,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
     }
 
     class AppListViewHolder extends RecyclerView.ViewHolder
-            implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
+            implements View.OnClickListener, View.OnLongClickListener {
 
         public TextView appLabel;
         public ImageView appIcon;
@@ -146,7 +145,6 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
             itemView.setOnClickListener(this);
             itemView.setLongClickable(true);
             itemView.setOnLongClickListener(this);
-            itemView.setOnCreateContextMenuListener(this);
         }
 
         @Override
@@ -175,18 +173,12 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
 
             vibrator.vibrate(context.getResources().getInteger(R.integer.vibrate_duration));
 
-            v.showContextMenu();
-
             //We set the appInfo object with the selected app, so it can be called from the activity
             appInfo = appList.get(getAdapterPosition());
 
-            return true;
+            return false;
         }
 
-        @Override
-        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-
-        }
     }
 
     /*

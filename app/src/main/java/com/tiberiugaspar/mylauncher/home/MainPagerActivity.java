@@ -45,6 +45,8 @@ import com.tiberiugaspar.mylauncher.util.SettingsUtil;
 import com.tiberiugaspar.mylauncher.util.WrapContentGridLayoutManager;
 
 import static com.tiberiugaspar.mylauncher.util.SettingsUtil.SHARED_PREFERENCES_APP_GRID_LAYOUT_COLUMNS;
+import static com.tiberiugaspar.mylauncher.util.SettingsUtil.SHARED_PREFERENCES_APP_GRID_LAYOUT_ROWS;
+import static com.tiberiugaspar.mylauncher.util.SettingsUtil.getAppGridSize;
 
 public class MainPagerActivity extends FragmentActivity {
 
@@ -145,14 +147,18 @@ public class MainPagerActivity extends FragmentActivity {
                             appDao.updateAppInfo(appInfo);
                             break;
 
-                        case Intent.ACTION_PACKAGE_REMOVED:
-                            appDao.deleteAppInfo(appInfo);
-                            Toast.makeText(context, appInfo.getLabel() + " uninstalled", Toast.LENGTH_LONG).show();
-                            break;
-
                         default:
                             break;
                     }
+
+                } else {
+                    appInfo = new AppInfo();
+                    appInfo.setPackageName(packageName);
+
+                    appDao.deleteAppInfo(appInfo);
+
+                    Toast.makeText(context, packageName + " uninstalled", Toast.LENGTH_LONG).show();
+
                 }
             }
         }
@@ -232,14 +238,16 @@ public class MainPagerActivity extends FragmentActivity {
 
         //if the back button is pressed while the user is in AppDrawer layout, we'll hide the drawer
         if (appDrawerLayout.getVisibility() == View.VISIBLE) {
+
             hideAppDrawer();
 
-        } else if (viewPager.getCurrentItem() == 0) {
+        } else if (viewPager.getCurrentItem() == 0
+                || viewPager.getCurrentItem() == (AppInfoUtil.getLastHomeScreenAppPage(getApplicationContext()) +
+                getResources().getInteger(R.integer.view_pager_magic_number) - 1)) {
 
-            //if the back button is pressed while the user is in the NewsFragment, we'll send him back
-            //to the first app page
+            //if the back button is pressed while the user is in the NewsFragment or SettingsFragment,
+            // we'll send him back to the first app page
             viewPager.setCurrentItem(1, true);
-            //TODO: add SettingsFragment condition
 
         } else {
 
@@ -281,8 +289,9 @@ public class MainPagerActivity extends FragmentActivity {
 
                 int lastPosition = AppInfoUtil.getLastAppPosition(this);
 
-                //TODO save the value locally (as in AppListAdapter (58,29)
-                if (lastPosition < (30 - 1)) {
+                int maxPosition = SettingsUtil.getAppGridSize(this, SHARED_PREFERENCES_APP_GRID_LAYOUT_ROWS)
+                        * getAppGridSize(this, SHARED_PREFERENCES_APP_GRID_LAYOUT_COLUMNS);
+                if (lastPosition < (maxPosition - 1)) {
 
                     appInfo.setPosition(lastPosition + 1);
                     appInfo.setPageNumber(AppInfoUtil.getLastHomeScreenAppPage(this));
@@ -298,7 +307,6 @@ public class MainPagerActivity extends FragmentActivity {
                 appDao.insertAppInfo(appInfo);
 
                 Toast.makeText(this, "Application added to home screen", Toast.LENGTH_SHORT).show();
-
 
                 return true;
 
