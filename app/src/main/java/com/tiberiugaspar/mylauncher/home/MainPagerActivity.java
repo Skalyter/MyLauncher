@@ -36,9 +36,10 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.tiberiugaspar.mylauncher.R;
 import com.tiberiugaspar.mylauncher.adapter.AppListAdapter;
+import com.tiberiugaspar.mylauncher.database.AppDao;
 import com.tiberiugaspar.mylauncher.model.AppInfo;
 import com.tiberiugaspar.mylauncher.news.NewsFragment;
-import com.tiberiugaspar.mylauncher.util.HomeScreenUtil;
+import com.tiberiugaspar.mylauncher.util.AppInfoUtil;
 import com.tiberiugaspar.mylauncher.util.WrapContentGridLayoutManager;
 
 public class MainPagerActivity extends FragmentActivity {
@@ -74,10 +75,9 @@ public class MainPagerActivity extends FragmentActivity {
             //if position is getNumberOfPages(getApplicationContext()) + magic_number - 1,
             //that means the user is on the Settings fragment and we'll proceed exactly the same as
             // in the News Fragment case
-            //TODO: change this, because won't be needed after we show only the user selected apps
             if (position == 0
-                    || (position == (HomeScreenUtil.getNumberOfPages(getApplicationContext()) +
-                    getResources().getInteger(R.integer.view_pager_magic_number) - 1))) {
+                    || (position == (AppInfoUtil.getLastHomeScreenAppPage(getApplicationContext())) +
+                    getResources().getInteger(R.integer.view_pager_magic_number) - 1)) {
 
                 Animation animation = AnimationUtils.loadAnimation(MainPagerActivity.this, android.R.anim.fade_out);
                 dockLayout.startAnimation(animation);
@@ -104,10 +104,11 @@ public class MainPagerActivity extends FragmentActivity {
             }
         }
     };
-
+    private AppDao appDao;
     private BroadcastReceiver packageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+
             //Triggered when a package is added, changed or removed
             if (intent.getAction() != null) {
 
@@ -116,24 +117,38 @@ public class MainPagerActivity extends FragmentActivity {
 
                 Log.d("MainPagerActivity", "onReceive: " + packageName);
 
-                //TODO: replace with add/remove app from homescreen and DB
-                switch (intent.getAction()) {
-                    case Intent.ACTION_PACKAGE_ADDED:
+                AppInfo appInfo = null;
 
-                        Toast.makeText(context, packageName + " installed", Toast.LENGTH_SHORT).show();
-                        break;
+                try {
+                    appInfo = AppInfoUtil.getAppInfoFromPackageName(MainPagerActivity.this, packageName);
 
-                    case Intent.ACTION_PACKAGE_CHANGED:
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
 
-                        break;
+                    Toast.makeText(context, "Package not found", Toast.LENGTH_SHORT).show();
+                }
 
-                    case Intent.ACTION_PACKAGE_REMOVED:
+                if (appInfo != null) {
+                    switch (intent.getAction()) {
+                        case Intent.ACTION_PACKAGE_ADDED:
 
-                        Toast.makeText(context, packageName + " uninstalled", Toast.LENGTH_LONG).show();
-                        break;
+                            //no-op
+//                            appDao.insertAppInfo(appInfo);
+//                            Toast.makeText(context, appInfo.getLabel() + " installed", Toast.LENGTH_SHORT).show();
+                            break;
 
-                    default:
-                        break;
+                        case Intent.ACTION_PACKAGE_CHANGED:
+                            appDao.updateAppInfo(appInfo);
+                            break;
+
+                        case Intent.ACTION_PACKAGE_REMOVED:
+                            appDao.deleteAppInfo(appInfo);
+                            Toast.makeText(context, appInfo.getLabel() + " uninstalled", Toast.LENGTH_LONG).show();
+                            break;
+
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -146,6 +161,8 @@ public class MainPagerActivity extends FragmentActivity {
         setContentView(R.layout.activity_main_pager);
 
         window = getWindow();
+
+        appDao = new AppDao(this);
 
         findViewsById();
         configureDockDrawables();
@@ -166,6 +183,7 @@ public class MainPagerActivity extends FragmentActivity {
                 (tab, position) -> {
                 });
         mediator.attach();
+
 
         //Register packageReceiver to listen to all the packages added or removed
         IntentFilter intentFilter = new IntentFilter();
@@ -251,9 +269,30 @@ public class MainPagerActivity extends FragmentActivity {
                 return true;
 
             case R.id.menu_add_to_homescreen:
-                //TODO: insert/update app in DB
-                //TODO: implement some drag-and-drop like feature to add current app on home screen
-                Toast.makeText(this, "Add to home screen", Toast.LENGTH_SHORT).show();
+
+                //insert app in DB and add it to the app list on the home screen
+                appInfo.setOnHomeScreen(true);
+
+                int lastPosition = AppInfoUtil.getLastAppPosition(this);
+
+                //TODO save the value locally (as in AppListAdapter (58,29)
+                if (lastPosition < (30 - 1)) {
+
+                    appInfo.setPosition(lastPosition + 1);
+                    appInfo.setPageNumber(AppInfoUtil.getLastHomeScreenAppPage(this));
+                } else {
+
+                    appInfo.setPosition(0);
+                    appInfo.setPageNumber(AppInfoUtil.getLastHomeScreenAppPage(this) + 1);
+                    AppInfoUtil.setLastHomeScreenAppPage(this, appInfo.getPageNumber());
+                }
+
+                AppInfoUtil.setLastAppPosition(this, appInfo.getPosition());
+
+                appDao.insertAppInfo(appInfo);
+
+                Toast.makeText(this, "Application added to home screen", Toast.LENGTH_SHORT).show();
+
 
                 return true;
 
@@ -302,7 +341,9 @@ public class MainPagerActivity extends FragmentActivity {
     }
 
     private void configureDockItemsListeners() {
+
         appDrawer.setOnClickListener(v -> showAppDrawer());
+
         appPhone.setOnClickListener(v -> animateStartActivity(phonePackage));
 
         appMessages.setOnClickListener(v -> animateStartActivity(smsPackage));
@@ -341,9 +382,12 @@ public class MainPagerActivity extends FragmentActivity {
      * @see #clearTranslucentWindowFlags();
      */
     private void hideAppDrawer() {
+
         Animation slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down);
+
         appDrawerLayout.startAnimation(slideDown);
         appDrawerLayout.postOnAnimation(() -> {
+
             appDrawerLayout.setVisibility(View.INVISIBLE);
             homeScreenLayout.setVisibility(View.VISIBLE);
             clearTranslucentWindowFlags();
@@ -362,7 +406,6 @@ public class MainPagerActivity extends FragmentActivity {
         PackageManager pm = MainPagerActivity.this.getPackageManager();
 
         try {
-
             Drawable icon = pm.getApplicationIcon(packageName);
             view.setImageDrawable(icon);
 
@@ -380,6 +423,7 @@ public class MainPagerActivity extends FragmentActivity {
      * @see #setDrawableIcon(ImageView, String)
      */
     private void configureDockDrawables() {
+
         //Get the default phone app package and set its icon
         phonePackage = ((TelecomManager) getSystemService(TELECOM_SERVICE)).getDefaultDialerPackage();
         setDrawableIcon(appPhone, phonePackage);
@@ -446,6 +490,7 @@ public class MainPagerActivity extends FragmentActivity {
             } else if (position == getItemCount() - 1) {
 
                 //fragment Settings
+                //TODO create a Settings fragment
                 return new Fragment();
             } else {
                 //Fragment HomeScreen
@@ -456,7 +501,7 @@ public class MainPagerActivity extends FragmentActivity {
         @Override
         public int getItemCount() {
 
-            return HomeScreenUtil.getNumberOfPages(getApplicationContext()) +
+            return AppInfoUtil.getLastHomeScreenAppPage(getApplicationContext()) +
                     getResources().getInteger(R.integer.view_pager_magic_number);
         }
     }

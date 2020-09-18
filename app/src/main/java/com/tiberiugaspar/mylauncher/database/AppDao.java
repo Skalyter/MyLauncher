@@ -13,9 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.tiberiugaspar.mylauncher.database.DatabaseScheme.COLUMN_ACCESSED_COUNTER;
+import static com.tiberiugaspar.mylauncher.database.DatabaseScheme.COLUMN_IS_ON_HOME_SCREEN;
 import static com.tiberiugaspar.mylauncher.database.DatabaseScheme.COLUMN_LABEL;
 import static com.tiberiugaspar.mylauncher.database.DatabaseScheme.COLUMN_PACKAGE;
 import static com.tiberiugaspar.mylauncher.database.DatabaseScheme.COLUMN_PAGE_NUMBER;
+import static com.tiberiugaspar.mylauncher.database.DatabaseScheme.COLUMN_POSITION;
 import static com.tiberiugaspar.mylauncher.database.DatabaseScheme.TABLE_APPS;
 
 public class AppDao implements IAppDao {
@@ -68,6 +70,9 @@ public class AppDao implements IAppDao {
         try {
             db.update(TABLE_APPS, entityToContentValues(appInfo), COLUMN_PACKAGE + "=?",
                     new String[]{String.valueOf(appInfo.getPackageName())});
+
+            Log.d(TAG, "updateAppInfo: success" + appInfo.getLabel() + " " + appInfo.getPosition());
+
         } finally {
             db.close();
         }
@@ -75,9 +80,11 @@ public class AppDao implements IAppDao {
 
     @Override
     public List<AppInfo> getAllAppsAlphabetically() {
+
         List<AppInfo> appInfoList = new ArrayList<>();
         DatabaseHelper helper = new DatabaseHelper(context);
         SQLiteDatabase db = helper.getReadableDatabase();
+
         Cursor cursor = db.query(TABLE_APPS,
                 null,
                 null,
@@ -101,9 +108,11 @@ public class AppDao implements IAppDao {
 
     @Override
     public List<AppInfo> getAllAppsByFrequency() {
+
         List<AppInfo> appInfoList = new ArrayList<>();
         DatabaseHelper helper = new DatabaseHelper(context);
         SQLiteDatabase db = helper.getReadableDatabase();
+
         Cursor cursor = db.query(TABLE_APPS,
                 null,
                 null,
@@ -127,15 +136,17 @@ public class AppDao implements IAppDao {
 
     @Override
     public List<AppInfo> getAppsForHomeScreen(int pageNumber) {
+
         List<AppInfo> appInfoList = new ArrayList<>();
         DatabaseHelper helper = new DatabaseHelper(context);
         SQLiteDatabase db = helper.getReadableDatabase();
+
         Cursor cursor = db.query(TABLE_APPS,
                 null,
                 COLUMN_PAGE_NUMBER + "=? ",
                 new String[]{String.valueOf(pageNumber)},
                 null,
-                null, null);
+                null, COLUMN_POSITION);
         try {
             if (cursor != null && cursor.getCount() > 0) {
                 while (cursor.moveToNext()) {
@@ -160,6 +171,15 @@ public class AppDao implements IAppDao {
             appInfo.setLabel(cursor.getString(cursor.getColumnIndex(COLUMN_LABEL)));
             appInfo.setPackageName(cursor.getString(cursor.getColumnIndex(COLUMN_PACKAGE)));
             appInfo.setIcon(context.getPackageManager().getApplicationIcon(appInfo.getPackageName().toString()));
+            appInfo.setPageNumber(cursor.getInt(cursor.getColumnIndex(COLUMN_PAGE_NUMBER)));
+            appInfo.setPosition(cursor.getInt(cursor.getColumnIndex(COLUMN_POSITION)));
+            if (cursor.getInt(cursor.getColumnIndex(COLUMN_IS_ON_HOME_SCREEN)) == 1) {
+
+                appInfo.setOnHomeScreen(true);
+            } else {
+
+                appInfo.setOnHomeScreen(false);
+            }
 
         } catch (PackageManager.NameNotFoundException e) {
 
@@ -169,12 +189,20 @@ public class AppDao implements IAppDao {
     }
 
     private ContentValues entityToContentValues(AppInfo appInfo) {
+
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(COLUMN_LABEL, appInfo.getLabel().toString());
         contentValues.put(COLUMN_PACKAGE, appInfo.getPackageName().toString());
         contentValues.put(COLUMN_ACCESSED_COUNTER, 0);
+        if (appInfo.isOnHomeScreen()) {
 
+            contentValues.put(COLUMN_IS_ON_HOME_SCREEN, 1);
+        } else {
+            contentValues.put(COLUMN_IS_ON_HOME_SCREEN, 0);
+        }
+        contentValues.put(COLUMN_PAGE_NUMBER, appInfo.getPageNumber());
+        contentValues.put(COLUMN_POSITION, appInfo.getPosition());
         return contentValues;
     }
 }

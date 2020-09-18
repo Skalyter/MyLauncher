@@ -7,6 +7,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Vibrator;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.tiberiugaspar.mylauncher.R;
+import com.tiberiugaspar.mylauncher.database.AppDao;
 import com.tiberiugaspar.mylauncher.model.AppInfo;
 
 import java.util.ArrayList;
@@ -34,6 +36,8 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
     private Integer pageNumber;
     private AppInfo appInfo;
 
+    private AppDao appDao;
+
     private int appsPerPage;
 
     private Vibrator vibrator;
@@ -43,9 +47,10 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
 
         this.context = context;
         this.showAllApps = showAllApps;
+        this.appDao = new AppDao(context);
 
         if (pageNumber != null) {
-            this.pageNumber = pageNumber - 1;
+            this.pageNumber = pageNumber;
         }
 
         new GetAppListThread().execute();
@@ -72,7 +77,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
 
         int position = appList.indexOf(appInfo);
 
-        //TODO: remove app from DB
+        appDao.deleteAppInfo(appInfo);
 
         //removing app from the list and updating the adapter
         appList.remove(appInfo);
@@ -129,7 +134,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
     }
 
     class AppListViewHolder extends RecyclerView.ViewHolder
-            implements View.OnClickListener, View.OnLongClickListener {
+            implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
 
         public TextView appLabel;
         public ImageView appIcon;
@@ -143,6 +148,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
             itemView.setOnClickListener(this);
             itemView.setLongClickable(true);
             itemView.setOnLongClickListener(this);
+            itemView.setOnCreateContextMenuListener(this);
         }
 
         @Override
@@ -150,14 +156,19 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
 
             int position = getAdapterPosition();
 
+            appInfo = appList.get(position);
+            appInfo.setAccessedCounter(appInfo.getAccessedCounter() + 1);
+
+            appDao.updateAppInfo(appInfo);
+
             //When the user clicks on any app, it will be opened using the launch intent for selected
             //app's package
             Intent intent = context.getPackageManager()
                     .getLaunchIntentForPackage(
-                            appList.get(position).getPackageName().toString());
+                            appInfo.getPackageName().toString());
             context.startActivity(intent);
 
-            //TODO: increment package accessed number in DB
+
         }
 
         @Override
@@ -174,6 +185,11 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
 
             return true;
         }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+
+        }
     }
 
     /*
@@ -185,22 +201,21 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
         @Override
         protected String doInBackground(Void... voids) {
 
-            //TODO: move these lines inside the if(showAllApps) condition
-
-            final PackageManager pm = context.getPackageManager();
-            appList = new ArrayList<>();
-
-            //creating an intent object with the ACTION_MAIN and CATEGORY_LAUNCHER flags
-            Intent intent = new Intent(Intent.ACTION_MAIN, null);
-            intent.addCategory(Intent.CATEGORY_LAUNCHER);
-
-            //getting all apps using the package manager's queryIntentActivities() method
-            List<ResolveInfo> allApps = pm.queryIntentActivities(intent, 0);
-
-            //sorting the app list so it can be shown alphabetically, using an anonymous comparator
-            Collections.sort(allApps, (o1, o2) -> o1.loadLabel(pm).toString().compareToIgnoreCase(o2.loadLabel(pm).toString()));
-
             if (showAllApps) {
+
+                final PackageManager pm = context.getPackageManager();
+                appList = new ArrayList<>();
+
+                //creating an intent object with the ACTION_MAIN and CATEGORY_LAUNCHER flags
+                Intent intent = new Intent(Intent.ACTION_MAIN, null);
+                intent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+                //getting all apps using the package manager's queryIntentActivities() method
+                List<ResolveInfo> allApps = pm.queryIntentActivities(intent, 0);
+
+                //sorting the app list so it can be shown alphabetically, using an anonymous comparator
+                Collections.sort(allApps, (o1, o2) -> o1.loadLabel(pm).toString().compareToIgnoreCase(o2.loadLabel(pm).toString()));
+
                 for (ResolveInfo info : allApps) {
                     AppInfo app = new AppInfo(
                             info.loadLabel(pm),
@@ -209,17 +224,13 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
                     addApp(app);
                 }
             } else {
-                //TODO: get apps from db according to the page number and delete the lines below
-                int start = pageNumber * appsPerPage;
-                int end = pageNumber * appsPerPage + appsPerPage;
-                for (int i = start; i < end && i < allApps.size(); i++) {
-                    ResolveInfo info = allApps.get(i);
-                    AppInfo app = new AppInfo(
-                            info.loadLabel(pm),
-                            info.activityInfo.packageName,
-                            info.activityInfo.loadIcon(pm));
-                    addApp(app);
+                if (!appList.isEmpty()) {
+
+                    appList.clear();
                 }
+
+                appList = appDao.getAppsForHomeScreen(pageNumber);
+
             }
             return "Success";
         }

@@ -6,7 +6,7 @@ public class AppInfo implements Comparable<AppInfo> {
     private CharSequence label;
     private CharSequence packageName;
     private Drawable icon;
-    private int accessedCounter;
+    private int accessedCounter = 0;
     private boolean isOnHomeScreen;
     private int pageNumber;
     private int position;

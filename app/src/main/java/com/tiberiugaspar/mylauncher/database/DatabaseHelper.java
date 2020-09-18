@@ -8,7 +8,7 @@ import androidx.annotation.Nullable;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final int VERSION = 0;
+    private static final int VERSION = 1;
     private static final String NAME = "mylauncher_db";
 
     public DatabaseHelper(@Nullable Context context) {
@@ -23,5 +23,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL(DatabaseScheme.DROP_TABLE_APPS);
+        db.execSQL(DatabaseScheme.DROP_TABLE_ARTICLES);
+        onCreate(db);
     }
 }

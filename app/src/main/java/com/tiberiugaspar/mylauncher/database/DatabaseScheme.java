@@ -42,4 +42,7 @@ public interface DatabaseScheme extends BaseColumns {
             + COLUMN_URL_TO_IMAGE + " TEXT, "
             + COLUMN_PUBLISHED_AT + " TEXT)";
 
+    String DROP_TABLE_APPS = "DROP TABLE IF EXISTS " + TABLE_APPS;
+
+    String DROP_TABLE_ARTICLES = "DROP TABLE IF EXISTS " + TABLE_ARTICLES;
 }
