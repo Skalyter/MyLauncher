@@ -31,7 +31,6 @@ public class HomeScreenFragment extends Fragment {
     private int pageNumber;
     private AppListAdapter appListAdapter;
     private RecyclerView recyclerView;
-    private ItemTouchHelper itemTouchHelper;
 
     private AppDao appDao;
 
@@ -101,7 +100,7 @@ public class HomeScreenFragment extends Fragment {
         int columns = SettingsUtil.getAppGridSize(getContext(), SHARED_PREFERENCES_APP_GRID_LAYOUT_COLUMNS);
         recyclerView.setLayoutManager(new WrapContentGridLayoutManager(getActivity(), columns));
         recyclerView.setAdapter(appListAdapter);
-        itemTouchHelper = new ItemTouchHelper(_ithCallback);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(_ithCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
         //register the recyclerView object for the contextual menu on long clicking an app

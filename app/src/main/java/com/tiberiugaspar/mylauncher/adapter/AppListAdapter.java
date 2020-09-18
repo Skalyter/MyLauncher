@@ -86,6 +86,20 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.AppListV
         this.appList.add(appInfo);
     }
 
+    public void addAppFromActivity(AppInfo appInfo) {
+        this.appList.add(appInfo);
+        notifyItemInserted(appList.size() - 1);
+    }
+
+    public void updateApp(AppInfo appInfo) {
+        int position = this.appList.indexOf(appInfo);
+        if (position != -1) {
+
+            this.appList.remove(appInfo);
+            this.appList.add(position, appInfo);
+        }
+    }
+
     @NonNull
     @Override
     public AppListViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

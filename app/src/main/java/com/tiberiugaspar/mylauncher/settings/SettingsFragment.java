@@ -38,7 +38,6 @@ public class SettingsFragment extends Fragment {
 
         return false;
     };
-    private CardView cardAppGridLayout, cardLauncherStyle, cardAppsOrder;
     private TextView labelAppGridLayout, labelLauncherStyle, labelAppsOrder;
 
     public SettingsFragment() {
@@ -56,9 +55,9 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        cardAppGridLayout = view.findViewById(R.id.card_app_grid_layout);
-        cardLauncherStyle = view.findViewById(R.id.card_launcher_style);
-        cardAppsOrder = view.findViewById(R.id.card_apps_order);
+        CardView cardAppGridLayout = view.findViewById(R.id.card_app_grid_layout);
+        CardView cardLauncherStyle = view.findViewById(R.id.card_launcher_style);
+        CardView cardAppsOrder = view.findViewById(R.id.card_apps_order);
         labelAppGridLayout = view.findViewById(R.id.label_app_grid_layout);
         labelLauncherStyle = view.findViewById(R.id.label_launcher_style);
         labelAppsOrder = view.findViewById(R.id.label_apps_order);

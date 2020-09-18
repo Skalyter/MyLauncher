@@ -52,7 +52,6 @@ public class MainPagerActivity extends FragmentActivity {
 
     private LinearLayout homeScreenLayout;
     private ViewPager2 viewPager;
-    private FragmentStateAdapter pagerAdapter;
     private ImageView appPhone, appMessages, appDrawer, appBrowser, appCamera;
     private String phonePackage, smsPackage, browserPackage, cameraPackage;
     private LinearLayout dockLayout;
@@ -139,13 +138,16 @@ public class MainPagerActivity extends FragmentActivity {
                     switch (intent.getAction()) {
                         case Intent.ACTION_PACKAGE_ADDED:
 
-                            //no-op
 //                            appDao.insertAppInfo(appInfo);
-//                            Toast.makeText(context, appInfo.getLabel() + " installed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, appInfo.getLabel() + " installed", Toast.LENGTH_SHORT).show();
+                            appListAdapter.addAppFromActivity(appInfo);
+
                             break;
 
                         case Intent.ACTION_PACKAGE_CHANGED:
+
                             appDao.updateAppInfo(appInfo);
+                            appListAdapter.updateApp(appInfo);
                             break;
 
                         default:
@@ -153,10 +155,12 @@ public class MainPagerActivity extends FragmentActivity {
                     }
 
                 } else {
+
                     appInfo = new AppInfo();
                     appInfo.setPackageName(packageName);
 
                     appDao.deleteAppInfo(appInfo);
+                    appListAdapter.removeApp(appInfo);
 
                     Toast.makeText(context, packageName + " uninstalled", Toast.LENGTH_LONG).show();
 
@@ -188,7 +192,7 @@ public class MainPagerActivity extends FragmentActivity {
 
         registerForContextMenu(appDrawerRecycler);
 
-        pagerAdapter = new ScreenSlidePagerAdapter(this);
+        FragmentStateAdapter pagerAdapter = new ScreenSlidePagerAdapter(this);
         viewPager.setAdapter(pagerAdapter);
         viewPager.setCurrentItem(1, false);
         TabLayout tabLayout = findViewById(R.id.tab_layout);

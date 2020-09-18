@@ -78,6 +78,6 @@ public class AppInfo implements Comparable<AppInfo> {
 
     @Override
     public int compareTo(AppInfo appInfo) {
-        return this.label.toString().compareToIgnoreCase(appInfo.label.toString());
+        return this.packageName.toString().compareToIgnoreCase(appInfo.packageName.toString());
     }
 }
